@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>GitSync</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/app.css"
+    >
+</head>
+
+<body>
+
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<div class="shell">
+
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-mark">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div>
+                <h1>GitSync</h1>
+                <p>Your branches, quietly kept fresh.</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+
+            <div class="system-state">
+                <span class="online-dot"></span>
+                Local
+            </div>
+
+            <button
+                class="primary-button"
+                id="openAddJob"
+            >
+                <span>＋</span>
+                New Sync
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <section class="hero">
+
+        <div class="hero-copy">
+
+            <div class="eyebrow">
+                WEEKDAY AUTOMATION
+            </div>
+
+            <h2>
+                Main moves.
+                <span>Your story keeps up.</span>
+            </h2>
+
+            <p>
+                Automatic local rebases every weekday
+                at 10:30 AM. Nothing is pushed remotely.
+            </p>
+
+        </div>
+
+        <div class="schedule-card">
+
+            <span class="schedule-label">
+                NEXT WINDOW
+            </span>
+
+            <strong>10:30</strong>
+
+            <span
+                id="nextRunDate"
+                class="next-run-date"
+            >
+                Calculating next run…
+            </span>
+
+            <span class="schedule-days">
+                Monday — Friday
+            </span>
+
+            <div class="schedule-line">
+                <div></div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="metrics">
+
+        <div class="metric-card">
+            <span>Active</span>
+            <strong id="activeCount">0</strong>
+        </div>
+
+        <div class="metric-card">
+            <span>Up to date</span>
+            <strong id="cleanCount">0</strong>
+        </div>
+
+        <div class="metric-card">
+            <span>Needs attention</span>
+            <strong id="attentionCount">0</strong>
+        </div>
+
+    </section>
+
+
+    <section class="content-section">
+
+        <div class="section-heading">
+
+            <div>
+                <span class="eyebrow">
+                    MICROservices
+                </span>
+
+                <h3>Sync jobs</h3>
+            </div>
+
+            <button
+                id="refreshJobs"
+                class="icon-button"
+                title="Refresh"
+            >
+                ↻
+            </button>
+
+        </div>
+
+        <div id="jobs" class="jobs-grid"></div>
+
+        <div id="emptyState" class="empty-state">
+
+            <div class="empty-orbit">
+                <div class="orbit-dot"></div>
+            </div>
+
+            <h3>No branches yet</h3>
+
+            <p>
+                Add your first local repository and story
+                branch to start GitSync.
+            </p>
+
+            <button
+                class="secondary-button"
+                onclick="openModal()"
+            >
+                Create first sync
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<div
+    id="modalBackdrop"
+    class="modal-backdrop"
+></div>
+
+
+<div
+    id="jobModal"
+    class="modal"
+>
+
+    <div class="modal-header">
+
+        <div>
+            <span class="eyebrow">NEW JOB</span>
+            <h3>Add branch</h3>
+        </div>
+
+        <button
+            class="close-button"
+            onclick="closeModal()"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <form id="jobForm">
+
+        <label>
+            Repository path
+            <input
+                id="repoPath"
+                placeholder="/Users/you/code/orders-service"
+                autocomplete="off"
+                required
+            >
+        </label>
+
+        <label>
+            Story branch
+            <input
+                id="branch"
+                placeholder="fb_your-branch-name"
+                autocomplete="off"
+                required
+            >
+        </label>
+
+        <label>
+            Base branch
+            <input
+                id="baseBranch"
+                value="main"
+                autocomplete="off"
+                required
+            >
+        </label>
+
+        <div class="hint">
+            GitSync never automatically switches branches
+            and never pushes anything remotely.
+        </div>
+
+        <button
+            class="primary-button submit-button"
+            type="submit"
+        >
+            Start Sync
+        </button>
+
+    </form>
+
+</div>
+
+
+<aside
+    id="historyDrawer"
+    class="history-drawer"
+>
+
+    <div class="drawer-header">
+
+        <div>
+            <span class="eyebrow">
+                RUN HISTORY
+            </span>
+
+            <h3 id="drawerTitle">
+                History
+            </h3>
+        </div>
+
+        <button
+            class="close-button"
+            onclick="closeHistory()"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <div
+        id="historyContent"
+        class="history-content"
+    ></div>
+
+</aside>
+
+
+
+<div
+    id="deleteModal"
+    class="delete-modal"
+>
+    <div class="delete-icon">
+        ×
+    </div>
+
+    <div class="eyebrow">
+        DELETE SYNC
+    </div>
+
+    <h3>Delete this sync?</h3>
+
+    <p id="deleteJobDescription">
+        This will permanently remove the sync job
+        and its run history.
+    </p>
+
+    <div class="delete-warning">
+        Your Git repository, branch, commits, and remote
+        repository will not be modified.
+        Only the GitSync configuration and history are removed.
+    </div>
+
+    <div class="delete-actions">
+
+        <button
+            class="secondary-button"
+            onclick="cancelDelete()"
+        >
+            Cancel
+        </button>
+
+        <button
+            class="delete-confirm-button"
+            id="confirmDeleteButton"
+        >
+            Delete Sync
+        </button>
+
+    </div>
+</div>
+
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>
